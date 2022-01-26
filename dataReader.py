@@ -228,7 +228,7 @@ class dataset:
             dataset = tf.data.Dataset.from_tensor_slices(filenamesTensor)
 
             #for each slice apply the __readImages function
-            dataset = dataset.map(self.__readImages, num_parallel_calls=int(multiprocessing.cpu_count() / 4))
+            dataset = dataset.map(self.__readImages, num_parallel_calls=1)
             #Authorize repetition of the dataset when one epoch is over.
             if shuffle:
                dataset = dataset.shuffle(buffer_size=16, reshuffle_each_iteration=True)
@@ -278,7 +278,7 @@ class dataset:
             dataset = tf.data.Dataset.from_tensor_slices(filenamesTensor)
 
             #for each slice apply the __readImages function
-            dataset = dataset.map(self.__readImagesGT, num_parallel_calls=int(multiprocessing.cpu_count() / 4))
+            dataset = dataset.map(self.__readImagesGT, num_parallel_calls=1)
             #Authorize repetition of the dataset when one epoch is over.
             #shuffle = True
             if shuffle:
