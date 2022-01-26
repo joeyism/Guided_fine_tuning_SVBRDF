@@ -110,7 +110,7 @@ input_dir = "dataExample/"
 #Extract all the materials to be processed. This assumes that the data are stored with naming "name".png for the large scale image and "name"_example.png for the exemplars (each exemplar concatenated along the Y axis).
 for dirpath, dirnames, filenames in os.walk(input_dir):
     for filename in filenames:
-        materialNames.append(filename.split("_example")[0])
+        materialNames.append(filename)
     break
     
 print(materialNames)
@@ -124,12 +124,10 @@ if not os.path.exists(outputFolder):
     
 #For each of the material for which we have an exemplar, we process it.     
 for matNb, materialName in enumerate(materialNames):
-    crops = os.path.join(input_dir, materialName + "_example.png")
+    crops = os.path.join(input_dir, materialName)
     if not os.path.exists(crops):
         continue #If we can't find the exemplar, move on to the next material.
-    imgPath = os.path.join(input_dir, materialName + ".png")
-    if not os.path.exists(imgPath):
-        imgPath = os.path.join(input_dir, materialName + ".jpg") #If the png doesn't exist, check if it could be a jpg
+    imgPath = os.path.join(input_dir, materialName)
     
     if not os.path.exists(imgPath):
         print("/!\/!\/!\ Could not find an image, skipping : " + str(imgPath))
