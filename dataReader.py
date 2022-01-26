@@ -181,7 +181,7 @@ class dataset:
         #Reads a slice of the tensor, for example, if the tensor is of shape [100,2], the slice shape should be [2]
         dataset = tf.data.Dataset.from_tensor_slices(filenamesTensor)
         #for each slice apply the __readImages function
-        dataset = dataset.map(self.__readMaterial, num_parallel_calls= int(multiprocessing.cpu_count() / 4)) #Divided by four as the cluster divides cpu availiability for each GPU
+        dataset = dataset.map(self.__readMaterial, num_parallel_calls=1) #Divided by four as the cluster divides cpu availiability for each GPU
         #Authorize repetition of the dataset when one epoch is over.
         dataset = dataset.repeat()
         if shuffle:
@@ -227,7 +227,7 @@ class dataset:
             dataset = tf.data.Dataset.from_tensor_slices(filenamesTensor)
 
             #for each slice apply the __readImages function
-            dataset = dataset.map(self.__readImages, num_parallel_calls=int(multiprocessing.cpu_count() / 4))
+            dataset = dataset.map(self.__readImages, num_parallel_calls=1)
             #Authorize repetition of the dataset when one epoch is over.
             if shuffle:
                dataset = dataset.shuffle(buffer_size=16, reshuffle_each_iteration=True)
@@ -277,7 +277,7 @@ class dataset:
             dataset = tf.data.Dataset.from_tensor_slices(filenamesTensor)
 
             #for each slice apply the __readImages function
-            dataset = dataset.map(self.__readImagesGT, num_parallel_calls=int(multiprocessing.cpu_count() / 4))
+            dataset = dataset.map(self.__readImagesGT, num_parallel_calls=1)
             #Authorize repetition of the dataset when one epoch is over.
             #shuffle = True
             if shuffle:
