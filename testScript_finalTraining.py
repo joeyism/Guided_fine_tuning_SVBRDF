@@ -110,8 +110,7 @@ input_dir = "dataExample/"
 #Extract all the materials to be processed. This assumes that the data are stored with naming "name".png for the large scale image and "name"_example.png for the exemplars (each exemplar concatenated along the Y axis).
 for dirpath, dirnames, filenames in os.walk(input_dir):
     for filename in filenames:
-        if "_example" in filename and not filename.split("_example")[0] in materialNames:
-            materialNames.append(filename.split("_example")[0])
+        materialNames.append(filename.split("_example")[0])
     break
     
 print(materialNames)
