@@ -8,6 +8,8 @@ import shutil
 inputSize = 512
 strideSize = 256
 exampleSize = 256
+CROPPED_END = "_cropped"
+
 def gaussianWeight(x, mu, sigma):
     a = 1/(sigma * np.sqrt(2.0 * np.pi))
     return a * np.exp(-(1.0/2.0) * ((x - mu)/sigma)**2)
@@ -105,12 +107,20 @@ def stitchResults(inputSize, outputFolder, maxIDImage, networkOutputsFolder, mat
         finalImage = (finalImage * 255).astype(np.uint8)
         imageio.imwrite(os.path.join(folderOutput, materialName + "_" + str(idMap) + ".png"), finalImage)
 
+def trim_and_reshape(image):
+  smaller_size = min(image.shape[:2])
+  image = image[:smaller_size, :smaller_size, :]
+  return image #cv2.resize(image, (256, 256))
+
 materialNames = []
 input_dir = "dataExample/"
 #Extract all the materials to be processed. This assumes that the data are stored with naming "name".png for the large scale image and "name"_example.png for the exemplars (each exemplar concatenated along the Y axis).
 for dirpath, dirnames, filenames in os.walk(input_dir):
     for filename in filenames:
-        materialNames.append(filename)
+        name, ext = os.path.splitext(filename)
+        if name.endswith(CROPPED_END):
+            continue
+        materialNames.append(name)
     break
     
 print(materialNames)
@@ -124,14 +134,17 @@ if not os.path.exists(outputFolder):
     
 #For each of the material for which we have an exemplar, we process it.     
 for matNb, materialName in enumerate(materialNames):
-    crops = os.path.join(input_dir, materialName)
-    if not os.path.exists(crops):
-        continue #If we can't find the exemplar, move on to the next material.
-    imgPath = os.path.join(input_dir, materialName)
-    
+    imgPath = os.path.join(input_dir, materialName + ".png")
     if not os.path.exists(imgPath):
         print("/!\/!\/!\ Could not find an image, skipping : " + str(imgPath))
         continue #If the large scale image cannot be found, move on to the next material
+
+    crops = os.path.join(input_dir, materialName + f"{CROPPED_END}.png")
+    if not os.path.exists(crops):
+        image = cv2.imread(imgPath)
+        image = trim_and_reshape(image)
+        cv2.imwrite(crops, image)
+    
         
     #Defines the folder that will be created to store the images needed for the fine tuning.
     inputFolder = os.path.join(outputFolder, "postTraining", materialName)
