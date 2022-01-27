@@ -109,6 +109,8 @@ def stitchResults(inputSize, outputFolder, maxIDImage, networkOutputsFolder, mat
 
 def trim_and_reshape(image):
   smaller_size = min(image.shape[:2])
+  if smaller_size % 2:
+    smaller_size -= 1
   image = image[:smaller_size, :smaller_size, :]
   return image #cv2.resize(image, (256, 256))
 
