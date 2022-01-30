@@ -341,7 +341,7 @@ def stitchResults(inputSize, outputFolder, maxIDImage, networkOutputsFolder, mat
         allImages = []
         #We store in memory all the results for the different tiles for the current map type.
         for idImage in range(maxIDImage + 1):
-            imagePath = os.path.join(networkOutputsFolder,"final", "images", materialName + "_" + str(idImage)+"-outputs_gammad-" + str(idMap) + "-.png" )
+            imagePath = os.path.join(networkOutputsFolder, "images", materialName + "_" + str(idImage)+"-outputs_gammad-" + str(idMap) + "-.png" )
             allImages.append(imageio.imread(imagePath))
 
         #We initialize the final image and the weights we will use to normalize the contribution of each tile
@@ -362,6 +362,11 @@ def stitchResults(inputSize, outputFolder, maxIDImage, networkOutputsFolder, mat
         finalImage = (finalImage * 255).astype(np.uint8)
         imageio.imwrite(os.path.join(folderOutput, materialName + "_" + str(idMap) + ".png"), finalImage)
 
+def gaussianWeight(x, mu, sigma):
+    a = 1/(sigma * np.sqrt(2.0 * np.pi))
+    return a * np.exp(-(1.0/2.0) * ((x - mu)/sigma)**2)
+
 if __name__ == '__main__':
-    cropImage("dataExample/woolish.png", "woolish", "cropped")
+    maxIDImage, widthSplit, heightSplit, height, width = cropImage("dataExample/woolish.png", "woolish", "cropped")
     runNetwork("cropped", "output_dir", "saved_weights", inputMode="folder")
+    stitchResults(inputSize, "", maxIDImage, "output_dir", "woolish", height, width, widthSplit, heightSplit)
