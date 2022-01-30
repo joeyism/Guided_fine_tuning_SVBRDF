@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import cv2
+import imageio
 import os
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
@@ -18,6 +20,9 @@ import losses
 import helpers
 import shutil
 from random import shuffle
+inputSize = 512
+strideSize = 256
+exampleSize = 256
 
 #!!!If running TF v > 2.0 uncomment those lines (also remove the tensorflow import on line 5):!!!
 #import tensorflow.compat.v1 as tf
@@ -313,10 +318,7 @@ def train(sv, sess, data, max_steps, display_fetches, display_fetches_test, data
         outputTestDir = os.path.join(a.output_dir, "final")
         test(sess, dataTest, max_steps, display_fetches_test, outputTestDir )
 
-if __name__ == '__main__':
-    main()
-
-def runNetwork(inputDir, outputDir, checkpoint, inputMode = "image", feedMethod = "files", mode="test", input_size=512, nbTargets = 4, batch_size = 1, fileList = [], nbStepMax = 3000, testApproach = "render"):
+def runNetwork(inputDir, outputDir, checkpoint, inputMode = "image", feedMethod = "files", mode="test", input_size=512, nbTargets = 1, batch_size = 1, fileList = [], nbStepMax = 3000, testApproach = "render"):
     inputpythonList.clear()
     a.inputMode = inputMode
     a.feedMethod = feedMethod
@@ -347,3 +349,43 @@ def runNetwork(inputDir, outputDir, checkpoint, inputMode = "image", feedMethod 
     print(a)
     #setup all options...
     main()
+
+def cropImage(imagePath, materialName, output_dir):
+    output_test_dir = os.path.join(output_dir, "test")
+    if not os.path.exists(output_test_dir):
+        os.makedirs(output_test_dir)
+
+    currentImageName = materialName
+    image = imageio.imread(imagePath)
+    height = int(image.shape[0])
+    width = int(image.shape[1])
+    #height = int(image.shape[0]/inputSize)*inputSize
+    #width = int(image.shape[1]/inputSize)*inputSize
+    #image = image[:height, :width, :]
+    if image.shape[-1] == 4:
+        image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
+    #cv2.imwrite(imagePath, image)
+
+    widthSplit = int(np.ceil(width / strideSize)) - 1
+    heightSplit = int(np.ceil(height / strideSize)) - 1
+
+    #Split the image
+    maxIDImage = 0
+
+    for i in range(widthSplit):
+        for j in range(heightSplit):
+            currentJPix = j * strideSize
+            currentIPix = i * strideSize
+            split = image[currentJPix:currentJPix + inputSize, currentIPix:currentIPix + inputSize, :]
+            splitID = (i * heightSplit) + j
+
+            currentSplitPath = os.path.join(output_test_dir, currentImageName + "_" + str(splitID) + ".png")
+
+            im = imageio.imwrite(currentSplitPath, split)
+
+            maxIDImage = splitID
+    return maxIDImage, widthSplit, heightSplit, height, width
+
+if __name__ == '__main__':
+    cropImage("dataExample/woolish.png", "woolish", "cropped")
+    runNetwork("cropped", "output_dir", "saved_weights", inputMode="folder")
