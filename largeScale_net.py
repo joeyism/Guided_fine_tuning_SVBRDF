@@ -322,6 +322,46 @@ def cropImage(imagePath, materialName, output_dir):
             maxIDImage = splitID
     return maxIDImage, widthSplit, heightSplit, height, width
 
+def stitchResults(inputSize, outputFolder, maxIDImage, networkOutputsFolder, materialName, height, width, widthSplit, heightSplit):
+    #We define here the weight to apply to each tiles, with one in the center and 0 in the borders.
+    sigm = 0.20
+    maxVal = gaussianWeight(0.5, 0.5, sigm)
+    oneImageWeights = np.asarray(np.meshgrid(np.linspace(0, 1, inputSize), np.linspace(0, 1, inputSize)))
+    oneImageWeights = gaussianWeight(oneImageWeights, 0.5, sigm) / maxVal
+    oneImageWeights = oneImageWeights[0] * oneImageWeights[1]
+    oneImageWeights = np.expand_dims(oneImageWeights, axis=-1)
+
+    #Which folder is going to hold the stitched final results.
+    folderOutput = os.path.join(outputFolder, "results_fineTuned")
+    if not os.path.exists(folderOutput):
+        os.makedirs(folderOutput)
+
+    #for each map id (representing normal, diffuse, roughness and specular)
+    for idMap in range(4):
+        allImages = []
+        #We store in memory all the results for the different tiles for the current map type.
+        for idImage in range(maxIDImage + 1):
+            imagePath = os.path.join(networkOutputsFolder,"final", "images", materialName + "_" + str(idImage)+"-outputs_gammad-" + str(idMap) + "-.png" )
+            allImages.append(imageio.imread(imagePath))
+
+        #We initialize the final image and the weights we will use to normalize the contribution of each tile
+        finalImage = np.zeros((height, width, 3))
+        finalWeights = np.zeros((height, width, 3))
+        for i in range(widthSplit):
+            for j in range(heightSplit):
+                currentJPix = j * strideSize
+                currentIPix = i * strideSize
+                splitID = (i * heightSplit) + j
+                #We now paste each images weight by the gaussian weights in the final image at the proper position
+                finalImage[currentJPix:currentJPix + inputSize, currentIPix:currentIPix + inputSize, :] = finalImage[currentJPix:currentJPix + inputSize, currentIPix:currentIPix + inputSize, :] + ((allImages[splitID]/255.0) * oneImageWeights)
+                #And creates a final weight image that stores the different total weights applied to each pixel, to normalize it in the end
+                finalWeights[currentJPix:currentJPix + inputSize, currentIPix:currentIPix + inputSize, :] = finalWeights[currentJPix:currentJPix + inputSize, currentIPix:currentIPix + inputSize, :] +oneImageWeights
+        #Normalizes the image with respect to each pixel's weight.
+        finalImage = finalImage / finalWeights
+        #Saves the map as uint8.
+        finalImage = (finalImage * 255).astype(np.uint8)
+        imageio.imwrite(os.path.join(folderOutput, materialName + "_" + str(idMap) + ".png"), finalImage)
+
 if __name__ == '__main__':
     cropImage("dataExample/woolish.png", "woolish", "cropped")
     runNetwork("cropped", "output_dir", "saved_weights", inputMode="folder")
