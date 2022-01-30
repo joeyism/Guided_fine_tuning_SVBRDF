@@ -32,59 +32,11 @@ exampleSize = 256
 
 #Source code tested for tensorflow version 1.12
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--checkpoint", default=None, help="directory with checkpoint to resume training from or use for testing")
-
-parser.add_argument("--max_steps", type=int, help="number of training steps (0 to disable)")
-parser.add_argument("--max_epochs", type=int, help="number of training epochs")
-parser.add_argument("--summary_freq", type=int, default=50, help="update summaries every summary_freq steps")
-parser.add_argument("--progress_freq", type=int, default=1000, help="display progress every progress_freq steps")
-
-parser.add_argument("--save_freq", type=int, default=10000, help="save model every save_freq steps, 0 to disable")
-parser.add_argument("--test_freq", type=int, default=20000, help="test model every test_freq steps, 0 to disable")
-parser.add_argument("--trace_freq", type=int, default=0, help="trace execution every trace_freq steps")
-
-parser.add_argument("--batch_size", type=int, default=1, help="number of images in batch")
-parser.add_argument("--which_direction", type=str, default="AtoB", choices=["AtoB", "BtoA"])
-parser.add_argument("--ngf", type=int, default=64, help="number of generator filters in first conv layer")
-parser.add_argument("--input_size", type=int, default=588, help="Size of the input data before cropping")
-parser.add_argument("--test_input_size", type=int, default=512, help="Size of the test input data before cropping")
-
-parser.add_argument("--lr", type=float, default=0.00002, help="initial learning rate for adam")
-parser.add_argument("--l1_weight", type=float, default=100.0, help="weight on L1 term for generator gradient")
-parser.add_argument("--nbTargets", type=int, default=1, help="Number of images to output")
-parser.add_argument("--nbInputs", type=int, default=1, help="Number of images in the input")
-
-
-parser.add_argument("--loss", type=str, default="render", choices=["l1", "render", "mixed"], help="Which loss to use instead of the L1 loss")
-parser.add_argument("--nbDiffuseRendering", type=int, default=3, help="Number of diffuse renderings in the rendering loss")
-parser.add_argument("--nbSpecularRendering", type=int, default=6, help="Number of specular renderings in the rendering loss")
-parser.add_argument("--useLog", dest="useLog", action="store_true", help="Use the log for input")
-parser.set_defaults(useLog=False)
-parser.add_argument("--includeDiffuse", dest="includeDiffuse", action="store_true", help="Include the diffuse term in the specular renderings of the rendering loss ?")
-parser.set_defaults(includeDiffuse=False)
-
-parser.add_argument("--logOutputAlbedos", dest="logOutputAlbedos", action="store_true", help="Log the output albedos")
-parser.set_defaults(logOutputAlbedos=False)
-
-parser.add_argument("--imageFormat", type=str, default="png", choices=["jpg", "png", "jpeg", "JPG", "JPEG", "PNG"], help="Which format have the input files")
-parser.add_argument("--inputMode", type=str, default="auto", choices=["auto", "xml", "folder", "image", "pythonList"], help="What kind of input to expect")
-parser.add_argument("--trainFolder", type=str, default="train", help="train folder to read")
-parser.add_argument("--testFolder", type=str, default="test", help="test folder to read")
-
-parser.add_argument("--feedMethod", type=str, default="render", choices=["files", "render"], help="Which feeding method to use")
-parser.add_argument("--renderingScene", type=str, default="staticViewPlaneLight", choices=["staticViewPlaneLight", "staticViewSpotLight", "staticViewHemiSpotLight", "staticViewHemiSpotLightOneSurface", "movingViewHemiSpotLightOneSurface", "fixedAngles", "collocatedHemiSpotLightOneSurface", "diffuse", "moreSpecular"], help="Static view with plane light")
-
-parser.add_argument("--jitterLightPos", dest="jitterLightPos", action="store_true", help="Jitter or not the light pos.")
-parser.set_defaults(jitterLightPos=False)
-parser.add_argument("--jitterViewPos", dest="jitterViewPos", action="store_true", help="Jitter or not the view pos.")
-parser.set_defaults(jitterViewPos=False)
-parser.add_argument("--useAmbientLight", dest="useAmbientLight", action="store_true", help="use ambient lighting in the rendering, this is not the system used in the fine tuning.")
-parser.set_defaults(useAmbientLight=False)
-parser.add_argument("--NoAugmentationInRenderings", dest="NoAugmentationInRenderings", action="store_true", help="Use the max pooling system.")
-parser.set_defaults(NoAugmentationInRenderings=False)
-parser.add_argument("--testApproach", type=str, default="render", choices=["files", "render"], help="Which feeding method to use")
-a = parser.parse_args()
+a = type('', (), {})()
+a.useAmbientLight = False
+a.NoAugmentationInRenderings = True
+a.logOutputAlbedos = False
+a.max_epochs = 10
 
 TILE_SIZE = 512
 inputpythonList = []
@@ -202,7 +154,7 @@ def loadCheckpointOption(mode, checkpoint):
                     print("loaded", key, "=", val)
                     setattr(a, key, val)
 
-    for k, v in a._get_kwargs():
+    for k, v in a.__dict__.items():
         print(k, "=", v)
 
 def test(sess, data, max_steps, display_fetches, output_dir):
