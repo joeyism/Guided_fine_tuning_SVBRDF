@@ -359,12 +359,12 @@ def cropImage(imagePath, materialName, output_dir):
     image = imageio.imread(imagePath)
     height = int(image.shape[0])
     width = int(image.shape[1])
-    #height = int(image.shape[0]/inputSize)*inputSize
-    #width = int(image.shape[1]/inputSize)*inputSize
-    #image = image[:height, :width, :]
+    height = int(image.shape[0]/inputSize)*inputSize
+    width = int(image.shape[1]/inputSize)*inputSize
+    image = image[:height, :width, :]
     if image.shape[-1] == 4:
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
-    #cv2.imwrite(imagePath, image)
+    cv2.imwrite(imagePath, image)
 
     widthSplit = int(np.ceil(width / strideSize)) - 1
     heightSplit = int(np.ceil(height / strideSize)) - 1
