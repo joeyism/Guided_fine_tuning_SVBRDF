@@ -235,7 +235,7 @@ class dataset:
             #set batch size
             dataset = dataset.repeat()
             batched_dataset = dataset.batch(self.batchSize)
-            batched_dataset = batched_dataset.prefetch(buffer_size=4)
+            batched_dataset = batched_dataset.prefetch(buffer_size=1)
             #Create an iterator to be initialized
             iterator = batched_dataset.make_initializable_iterator()
 
