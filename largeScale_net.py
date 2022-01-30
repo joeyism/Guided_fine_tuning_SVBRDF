@@ -33,11 +33,6 @@ exampleSize = 256
 #Source code tested for tensorflow version 1.12
 
 parser = argparse.ArgumentParser()
-
-parser.add_argument("--mode", required=(__name__ == '__main__'), choices=["train", "test", "finetune"])
-parser.add_argument("--output_dir", required=(__name__ == '__main__'), help="where to put output files")
-parser.add_argument("--input_dir", help="path to xml file containing information images")
-parser.add_argument("--seed", type=int)
 parser.add_argument("--checkpoint", default=None, help="directory with checkpoint to resume training from or use for testing")
 
 parser.add_argument("--max_steps", type=int, help="number of training steps (0 to disable)")
@@ -89,27 +84,13 @@ parser.set_defaults(useAmbientLight=False)
 parser.add_argument("--NoAugmentationInRenderings", dest="NoAugmentationInRenderings", action="store_true", help="Use the max pooling system.")
 parser.set_defaults(NoAugmentationInRenderings=False)
 parser.add_argument("--testApproach", type=str, default="render", choices=["files", "render"], help="Which feeding method to use")
-
-
-
 a = parser.parse_args()
-
-if __name__ == '__main__':
-    if a.inputMode == "auto":
-        if a.input_dir.lower().endswith(".xml"):
-            a.inputMode = "xml"
-            print("XML Not supported anymore")
-        elif os.path.isdir(a.input_dir):
-            a.inputMode = "folder"
-        else:
-            a.inputMode = "image"
 
 TILE_SIZE = 512
 inputpythonList = []
 
 def main():
-    if a.seed is None:
-        a.seed = random.randint(0, 2**31 - 1)
+    a.seed = random.randint(0, 2**31 - 1)
 
     tf.set_random_seed(a.seed)
     np.random.seed(a.seed)
@@ -224,7 +205,7 @@ def loadCheckpointOption(mode, checkpoint):
     for k, v in a._get_kwargs():
         print(k, "=", v)
 
-def test(sess, data, max_steps, display_fetches, output_dir = a.output_dir):
+def test(sess, data, max_steps, display_fetches, output_dir):
     #testing at most, process the test data once
     sess.run(data.iterator.initializer)
     max_steps = min(data.stepsPerEpoch, max_steps)
@@ -240,7 +221,7 @@ def test(sess, data, max_steps, display_fetches, output_dir = a.output_dir):
     index_path = helpers.append_index(filesets, output_dir, a.nbTargets, a.mode)
     return filesets
 
-def train(sv, sess, data, max_steps, display_fetches, display_fetches_test, dataTest, saver, loss, output_dir = a.output_dir):
+def train(sv, sess, data, max_steps, display_fetches, display_fetches_test, dataTest, saver, loss, output_dir):
     sess.run(data.iterator.initializer)
     try:
         # training
@@ -343,6 +324,9 @@ def runNetwork(inputDir, outputDir, checkpoint, inputMode = "image", feedMethod 
     a.includeDiffuse = True
     a.testApproach = testApproach
     a.test_input_size = 512
+    a.imageFormat = "png"
+    a.trainFolder = "train"
+    a.testFolder = "test"
     
     inputpythonList.extend(fileList)
     tf.reset_default_graph()
