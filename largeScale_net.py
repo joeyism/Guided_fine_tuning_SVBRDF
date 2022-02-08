@@ -300,7 +300,7 @@ def cropImage(imagePath, materialName, output_dir):
     image = image[:height, :width, :]
     if image.shape[-1] == 4:
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
-    cv2.imwrite(imagePath, image)
+    imageio.imwrite(imagePath, image)
 
     widthSplit = int(np.ceil(width / strideSize)) - 1
     heightSplit = int(np.ceil(height / strideSize)) - 1
